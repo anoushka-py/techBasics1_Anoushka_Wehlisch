@@ -1,0 +1,4 @@
+name,timestamp,time_seconds,result
+ana,2026-06-09 10:32,2.8,correct
+lucie,2026-06-09 10:29,5.0,correct
+anoushka,2026-06-09 10:29,2.9,wrong
