@@ -88,6 +88,84 @@ for i, category in enumerate(closet_categories):
         "selected_index": 0,
     })
 
+#Clothing Options ----------------------------------------------------------------------------------------
+hair_options = [
+     {"name": "Black Long Hair", "image": "Assets/Hair/Hair 1.png"},
+     {"name": "Blonde Half Up Half Down", "image": "Assets/Hair/Hair 2.png"},
+     {"name": "Red Bob", "image": "Assets/Hair/Hair 3.png"},
+     {"name": "Navy Bun", "image": "Assets/Hair/Hair 4.png"},
+     {"name": "Brown Space Buns", "image": "Assets/Hair/Hair 5.png"},
+ ]
+
+top_options = [
+    {"name": "Black 3/4 Sleeve", "image": "Assets/Tops/Top 1.png"},
+    {"name": "Pink Tube Top", "image": "Assets/Tops/Top 2.png"},
+    {"name": "Yellow Turtle Neck", "image": "Assets/Tops/Top 3.png"},
+    {"name": "Green Tank Top", "image": "Assets/Tops/Top 4.png"},
+    {"name": "Grey Hoodie", "image": "Assets/Tops/Top 5.png"},
+]
+
+bottom_options = [
+    {"name": "Jeans", "image": "Assets/Bottoms/Bottom 1.png"},
+    {"name": "Black Shorts", "image": "Assets/Bottoms/Bottom 2.png"},
+    {"name": "Striped Skirt", "image": "Assets/Bottoms/Bottom 3.png"},
+    {"name": "Dark Joggers", "image": "Assets/Bottoms/Bottom 4.png"},
+    {"name": "Jean Capris", "image": "Assets/Bottoms/Bottom 5.png"},
+]
+
+shoe_options = [
+    {"name": "Brown Boots", "image": "Assets/Shoes/Shoes 1.png"},
+    {"name": "White Flats", "image": "Assets/Shoes/Shoes 2.png"},
+    {"name": "Blue Sneakers", "image": "Assets/Shoes/Shoes 3.png"},
+    {"name": "Red Boots", "image": "Assets/Shoes/Shoes 4.png"},
+    {"name": "Black Heels", "image": "Assets/Shoes/Shoes 5.png"},
+]
+
+
+ #Clothing Loading ----------------------------------------------------------------------------------------
+THUMBNAIL_MAX_SIZE = (150, 120)
+
+
+def load_clothing_images(options_list):
+    for item in options_list:
+        image = pygame.image.load(item["image"]).convert_alpha()
+
+        scaled_width = int(image.get_width() * scale_factor)
+        scaled_height = int(image.get_height() * scale_factor)
+        item["surface"] = pygame.transform.smoothscale(image, (scaled_width, scaled_height))
+
+        content_rect = image.get_bounding_rect()
+        cropped = image.subsurface(content_rect).copy()
+
+        thumb_scale = min(
+            THUMBNAIL_MAX_SIZE[0] / cropped.get_width(),
+            THUMBNAIL_MAX_SIZE[1] / cropped.get_height()
+        )
+        thumb_size = (int(cropped.get_width() * thumb_scale), int(cropped.get_height() * thumb_scale))
+        item["thumbnail"] = pygame.transform.smoothscale(cropped, thumb_size)
+
+load_clothing_images(hair_options)
+load_clothing_images(top_options)
+load_clothing_images(bottom_options)
+load_clothing_images(shoe_options)
+
+ #Clothing Dictionaries
+category_options = {
+ "hair": hair_options,
+ "top": top_options,
+ "bottom": bottom_options,
+ "shoe": shoe_options,
+}
+
+equipped_items = {
+ "hair": None,
+ "top": None,
+ "bottom": None,
+ "shoe": None,
+}
+
+DRAW_ORDER = ["shoe", "bottom", "top", "hair"]
+
 #Screen Transition
 game_state = "title"
 transitioning = False
@@ -111,6 +189,23 @@ while running:
             if game_state == "title" and not transitioning and button_rect.collidepoint(event.pos):
                 transitioning = True
                 fade_direction = 1
+
+            elif game_state == "game":
+                for slot in closet_slots:
+                    options_list = category_options[slot["category"]]
+
+                    if len(options_list) == 0:
+                        continue
+
+                    if slot["left_arrow_rect"].collidepoint(event.pos):
+                        slot["selected_index"] = (slot["selected_index"] - 1) % len(options_list)
+
+                    elif slot["right_arrow_rect"].collidepoint(event.pos):
+                        slot["selected_index"] = (slot["selected_index"] + 1) % len(options_list)
+
+                    elif slot["rect"].collidepoint(event.pos):
+                        current_item = options_list[slot["selected_index"]]
+                        equipped_items[slot["category"]] = current_item["surface"]
 
     if game_state == "title":
 
@@ -161,40 +256,58 @@ while running:
         )
 
 
+
     elif game_state == "game":
+
+        #Drawing the background
         screen.fill(GAME_BACKGROUND_COLOR)
 
-    #Draw the character
+        #Drawing the character
         screen.blit(character_image, character_rect)
 
-    #Draw the closet
-    pygame.draw.rect(screen, CLOSET_PANEL_COLOR, closet_panel_rect, border_radius=25)
-    inner_panel_rect = closet_panel_rect.inflate(-10, -10)
-    pygame.draw.rect(screen, CLOSET_PANEL_COLOR, inner_panel_rect, border_radius=20)
+        for category in DRAW_ORDER:
 
-    for i, slot in enumerate(closet_slots):
-        if i > 0:
-            line_y = slot["rect"].top
-            pygame.draw.line(
-                screen, CLOSET_SEPERATOR_COLOR,
-                (closet_panel_rect.left + 15, line_y),
-                (closet_panel_rect.right - 15, line_y),
-                3
-            )
+            equipped_surface = equipped_items[category]
 
-        la = slot["left_arrow_rect"]
-        pygame.draw.polygon(screen, CLOSET_ARROW_COLOR, [
-            (la.right, la.top),
-            (la.right, la.bottom),
-            (la.left, la.centery),
-        ])
+            if equipped_surface is not None:
+                screen.blit(equipped_surface, character_rect)
 
-        ra = slot["right_arrow_rect"]
-        pygame.draw.polygon(screen, CLOSET_ARROW_COLOR, [
-            (ra.left, ra.top),
-            (ra.left, ra.bottom),
-            (ra.right, ra.centery),
-        ])
+        pygame.draw.rect(screen, CLOSET_PANEL_BORDER_COLOR, closet_panel_rect, border_radius=25)
+
+        inner_panel_rect = closet_panel_rect.inflate(-10, -10)
+
+        pygame.draw.rect(screen, CLOSET_PANEL_COLOR, inner_panel_rect, border_radius=20)
+
+        for i, slot in enumerate(closet_slots):
+            if i > 0:
+                line_y = slot["rect"].top
+                pygame.draw.line(
+                    screen, CLOSET_SEPERATOR_COLOR,
+                    (closet_panel_rect.left + 15, line_y),
+                    (closet_panel_rect.right - 15, line_y),
+                    3
+                )
+
+            la = slot["left_arrow_rect"]
+            pygame.draw.polygon(screen, CLOSET_ARROW_COLOR, [
+                (la.right, la.top),
+                (la.right, la.bottom),
+                (la.left, la.centery),
+            ])
+
+            ra = slot["right_arrow_rect"]
+            pygame.draw.polygon(screen, CLOSET_ARROW_COLOR, [
+                (ra.left, ra.top),
+                (ra.left, ra.bottom),
+                (ra.right, ra.centery),
+            ])
+
+            options_list = category_options[slot["category"]]
+            if len(options_list) > 0:
+                current_item = options_list[slot["selected_index"]]
+                thumbnail = current_item["thumbnail"]
+                thumbnail_rect = thumbnail.get_rect(center=slot["rect"].center)
+                screen.blit(thumbnail, thumbnail_rect)
     #Fade transitiom
     if transitioning:
         fade_alpha += FADE_SPEED * fade_direction
