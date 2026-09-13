@@ -380,7 +380,7 @@ while running:
                     final_character_image = character_image.copy()
 
                     for category in DRAW_ORDER:
-                        if equipped_itmes[category] is not None:
+                        if equipped_items[category] is not None:
                             final_character_image.blit(equipped_items[category],(0, 0))
 
                     if equipped_accessory is not None:
@@ -473,7 +473,7 @@ while running:
     if game_state == "title":
 
         # Drawing the background
-        screen.fill(title_background_image, (0, 0))
+        screen.blit(title_background_image, (0, 0))
 
         # Drawing the title
         draw_text_with_shadow(
@@ -526,7 +526,7 @@ while running:
     elif game_state == "game":
 
         #Drawing the background
-        screen.fill(Ggame_background_image, (0, 0))
+        screen.blit(game_background_image, (0, 0))
 
         if accessory_prompt_stage == "showing":
             pygame.draw.rect(screen, POPUP_BORDER_COLOR, accessory_popup_rect.inflate(10, 10), border_radius=25)
@@ -550,11 +550,11 @@ while running:
         #Draw character shadow
 
         character_shadow = character_image.copy()
-        character_shadow.fill((0, 0, 0, 100), speical_flags=pygame.BLEND_RGBA_MULT)
+        character_shadow.fill((0, 0, 0, 100), special_flags=pygame.BLEND_RGBA_MULT)
 
         screen.blit(
             character_shadow,
-            character_rect.x + 6, character_rect.y = 6)
+            (character_rect.x + 6, character_rect.y + 6)
         )
 
         #Draw character
@@ -651,7 +651,7 @@ while running:
             final_done_text_rect = final_done_text.get_rect(center=final_done_button_rect.center)
 
             screen.blit(final_done_text, final_done_text_rect)
-)
+
     #Intro Pop-Up
         if popup_stage in ("greeting", "hesitant"):
             pygame.draw.rect(screen, POPUP_BORDER_COLOR, popup_rect.inflate(10, 10), border_radius=25)
@@ -725,13 +725,13 @@ while running:
     if final_transitioning or final_transition_stage > 0:
 
         if final_transition_stage == 0:
-            finale_fade_alpha += 5
+            final_fade_alpha += 5
             if final_fade_alpha >= 255:
                 final_fade_alpha = 255
                 final_transition_stage = 1
                 final_stage_timer = 0
 
-                zoom_width = int(final_charcter_image.get_width() * FINAL_ZOOM_SCALE)
+                zoom_width = int(final_character_image.get_width() * FINAL_ZOOM_SCALE)
                 zoom_height = int(final_character_image.get_height() * FINAL_ZOOM_SCALE)
                 zoomed_full_surface = pygame.transform.smoothscale(final_character_image, (zoom_width, zoom_height))
 
@@ -765,8 +765,66 @@ while running:
             else:
                 start_x = WIDTH + zoomed_rect.width // 2
             end_x = WIDTH //2
-            zoomed_rct.centerx = int(start_x + (end_x - start_x) * pan_progress)
+            zoomed_rect.centerx = int(start_x + (end_x - start_x) * pan_progress)
 
+    #Final Character shadow
+
+            shadow_rect = zoomed_rect.copy()
+            shadow_rect.x += 6
+            shadow_rect.y += 6
+
+            shadow_rect = zoomed_rect.copy()
+            shadow_rect.x += 6
+            shadow_rect.y += 6
+
+            screen.blit(zoomed_shadow_surface, shadow_rect)
+
+    #Final Character
+
+            screen.blit(zoomed_full_surface, zoomed_rect)
+
+            if final_transition_stage == 1 and final_fade_alpha > 0:
+                final_fade_alpha -= 5
+                if final_fade_alpha < 0:
+                    final_fade_alpha = 0
+                fade_surface.set_alpha(final_fade_alpha)
+                screen.blit(fade_surface, (0, 0))
+
+            final_stage_timer += 1
+
+            if final_stage_timer >= PAN_DURATION_FRAMES + PAN_HOLD_FRAMES:
+                final_stage_timer = 0
+                final_transition_stage += 1
+                if final_transition_stage > 3:
+                    final_transition_stage = 4
+                    final_transition = False
+
+        elif final_transition_stage == 4:
+            screen.blit(title_background_image, (0, 0))
+
+            reveal_width = int(final_character_image.get_width() * FINAL_REVEAL_SCALE)
+            reveal_height = int(final_character_image.get_height() * FINAL_REVEAL_SCALE)
+            reveal_surface = pygame.transform.smoothscale(final_character_image, (reveal_width, reveal_height))
+            reveal_rect = reveal_surface.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 40))
+
+    #Final character shadow?
+
+            reveal_shadow_width = int(final_character_shadow.get_width() * FINAL_REVEAL_SCALE)
+            reveal_shadow_height = int(final_character_shadow.get_height() * FINAL_REVEAL_SCALE)
+
+            reveal_shadow_surface = pygame.transform.smoothscale(
+                final_character_shadow,
+                (reveal_shadow_width, reveal_shadow_height)
+            )
+
+            reveal_shadow_rect = reveal_rect.copy()
+            reveal_shadow_rect.x += 6
+            reveal_shadow_rect.y += 6
+
+            screen.blit(reveal_shadow_surface, reveal_shadow_rect)
+
+            # ---- draw final character ----
+            screen.blit(reveal_surface, reveal_rect)
 
     #Outfit Reveal
     if outfit_finalized and reveal_progress < 1:
