@@ -37,11 +37,29 @@ POPUP_BUTTON_TEXT_COLOR = (90, 60, 90)
 
 #Fonts -----------------------------------------------------------------------------------
 
-title_font = pygame.font.SysFont("comicsansms", 80, bold=True)
-button_font = pygame.font.SysFont("comicsansms", 48, bold=True)
-popup_font = pygame.font.SysFont("comicsansms", 26, bold=True)
-accessory_popup_font = pygame.font.SysFont("comicsansms", 22, bold=True)
-popup_button_font = pygame.font.SysFont("comicsansms", 24, bold=True)
+title_font = pygame.font.SysFont("shootingstar", 80, bold=False)
+button_font = pygame.font.SysFont("shootingstar", 48, bold=False)
+placeholder_font = pygame.font.SysFont("shootingstar", 28, bold=False)
+closet_font = pygame.font.SysFont("shootingstar", 30, bold=False)
+popup_font = pygame.font.SysFont("shootingstar", 26, bold=False)
+accessory_popup_font = pygame.font.SysFont("shootingstar", 22, bold=False)
+popup_button_font = pygame.font.SysFont("shootingstar", 24, bold=False)
+
+#Colors
+
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+
+#Text shadow -----------------------------------------------------------------------------------------
+
+def draw_text_with_shadow(text, font, text_color, position):
+    shadow = font.render(text, True, (0, 0, 0))
+    shadow.set_alpha(100)
+    screen.blit(shadow, (position[0] + 2, position[1] + 2))
+
+    text_surface = font.render(text, True, text_color)
+    screen.blit(text_surface, position)
+
 #Title Text -----------------------------------------------------------------------------------------
 
 title_text = title_font.render("Dress Up Diva", True, TITLE_COLOR)
@@ -68,6 +86,15 @@ character_image = pygame.transform.smoothscale(character_image, (character_width
 character_rect = character_image.get_rect()
 character_rect.centerx = WIDTH // 4
 character_rect.bottom = HEIGHT - 10
+
+#Background images ----------------------------------------------------------------------------------------
+
+
+title_background_image = pygame.image.load("assets/backgrounds/title_background.jpeg").convert()
+title_background_image = pygame.transform.smoothscale(title_background_image, (WIDTH, HEIGHT))
+
+game_background_image = pygame.image.load("assets/backgrounds/game_background.jpeg").convert()
+game_background_image = pygame.transform.smoothscale(game_background_image, (WIDTH, HEIGHT))
 
 #Closet Layout ----------------------------------------------------------------------------------------
 
@@ -158,8 +185,8 @@ accessory_options = [
 ]
 
  #Clothing Loading ----------------------------------------------------------------------------------------
-THUMBNAIL_MAX_SIZE = (150, 120)
 
+THUMBNAIL_MAX_SIZE = (150, 120)
 
 def load_clothing_images(options_list):
     for item in options_list:
@@ -186,6 +213,7 @@ load_clothing_images(shoe_options)
 load_clothing_images(accessory_options)
 
 #Clothing Dictionaries ----------------------------------------------------------------------------------------
+
 category_options = {
  "hair": hair_options,
  "top": top_options,
@@ -248,7 +276,8 @@ done_button_rect.center = ((character_rect.right + closet_panel_rect.left) // 2,
 
 closet_fade_rect = closet_panel_rect.inflate(20, 20)
 closet_fade_surface = pygame.Surface(closet_fade_rect.size)
-closet_fade_surface.fill(GAME_BACKGROUND_COLOR)
+ccloset_fade_rect = closet_panel_rect.inflate(20, 20)
+closet_fade_surface = game_background_image.subsurface(closet_fade_rect).copy()
 
 #Accessory Prompt ----------------------------------------------------------------------------------------
 
@@ -258,6 +287,11 @@ how_could_i_forget_rect = pygame.Rect(0, 0, 260, 60)
 
 accessory_closet_showing = False
 
+#Done Button 2 ----------------------------------------------------------------------------------------
+
+final_done_button_rect = pygame.Rect(0, 0, DONE_BUTTON_SIZE[0], DONE_BUTTON_SIZE[1])
+final_done_button_rect.center = ((character_rect.right + closet_panel_rect.left) // 2, HEIGHT // 2)
+
 #Screen Transition ----------------------------------------------------------------------------------------
 game_state = "title"
 transitioning = False
@@ -266,6 +300,35 @@ fade_direction = 1
 
 fade_surface = pygame.Surface((WIDTH, HEIGHT))
 fade_surface.fill(FADE_COLOR)
+
+#Final Transition ------------------------------------------------------------------------------------------
+
+final_transitioning = False
+final_fade_alpha = 0
+
+final_transition_stage = 0
+final_stage_timer = 0
+
+PAN_DURATION_FRAMES = 150
+PAN_DURATION_FRAMES = 150
+
+PAN_HOLD_FRAMES = 45
+FINAL_ZOOM_SCALE = 2.5
+
+FINAL_REVEAL_SCALE = 1.0
+
+final_character_image = None
+
+zoomed_full_surface = None
+
+PAN_STAGES = [
+    (90.20, 0.22, "left"),
+    (0.35, 0.68, "right" ),
+    (0.50, 1.00, "left"),
+]
+
+pan_surface = None
+pan_rect = None
 
 #Main Loop ------------------------------------------------------------------------------------------
 
@@ -307,6 +370,42 @@ while running:
                     accessory_prompt_stage = "closed"
                     accessory_closet_showing = True
 
+            elif game_state == "game" and accessory_closet_showing:
+                if equipped_accessory is not None and final_done_button_rect.collidepoint(event.pos):
+                    final_transitioning = True
+                    final_transition_stage = 0
+                    final_dade_alpha = 0
+                    final_stage_timer = 0
+
+                    final_character_image = character_image.copy()
+
+                    for category in DRAW_ORDER:
+                        if equipped_itmes[category] is not None:
+                            final_character_image.blit(equipped_items[category],(0, 0))
+
+                    if equipped_accessory is not None:
+                        final_character_image.blit(equipped_accessory, (0, 0))
+
+        #Shadows
+
+                    final_character_shadow = final_character_image.copy()
+                    final_character_shadow.fill(
+                        (0, 0, 0, 100),
+                        special_flags=pygame.BLEND_RGBA_MULT
+                    )
+                else:
+                    for slot in accessory_slots:
+                        if slot["rect"].collidepoint(event.pos):
+                            current_accessory = accessory_options[slot["accessory_index"]]
+                            accessory = current_accessory["surface"]
+
+                            grown_width = int(accessory.get_width() * GROW_SCALE)
+                            grown_height = int(accessory.get_height() * GROW_SCALE)
+
+                            equipped_accessory = pygame.transform.smoothscale(
+                                accessory,
+                                (grown_width, grown_height)
+                            )
 
             elif game_state == "game" and accessory_closet_showing:
                 for slot in accessory_slots:
@@ -324,7 +423,6 @@ while running:
                         (grown_width, grown_height)
 
                         )
-
 
             elif game_state == "game" and popup_stage == "closed" and not accessory_closet_showing:
                 for slot in closet_slots:
@@ -375,10 +473,15 @@ while running:
     if game_state == "title":
 
         # Drawing the background
-        screen.fill(BACKGROUND_COLOR)
+        screen.fill(title_background_image, (0, 0))
 
         # Drawing the title
-        screen.blit(title_text, title_rect)
+        draw_text_with_shadow(
+            "DRESS UP DIBA",
+            title_font,
+            TITLE_COLOR,
+            title_rect.topleft
+        )
 
         # Drawing the button
         mouse_pos = pygame.mouse.get_pos()
@@ -423,7 +526,7 @@ while running:
     elif game_state == "game":
 
         #Drawing the background
-        screen.fill(GAME_BACKGROUND_COLOR)
+        screen.fill(Ggame_background_image, (0, 0))
 
         if accessory_prompt_stage == "showing":
             pygame.draw.rect(screen, POPUP_BORDER_COLOR, accessory_popup_rect.inflate(10, 10), border_radius=25)
@@ -443,6 +546,16 @@ while running:
             forget_text = popup_button_font.render("How could I forget!", True, POPUP_BUTTON_TEXT_COLOR)
             forget_text_rect = forget_text.get_rect(center=how_could_i_forget_rect.center)
             screen.blit(forget_text, forget_text_rect)
+
+        #Draw character shadow
+
+        character_shadow = character_image.copy()
+        character_shadow.fill((0, 0, 0, 100), speical_flags=pygame.BLEND_RGBA_MULT)
+
+        screen.blit(
+            character_shadow,
+            character_rect.x + 6, character_rect.y = 6)
+        )
 
         #Draw character
         screen.blit(character_image, character_rect)
@@ -503,10 +616,11 @@ while running:
                 screen.blit(done_text, done_text_rect)
 
     #Accessory Closet
+
         if accessory_closet_showing:
             pygame.draw.rect(screen, CLOSET_PANEL_COLOR, accessory_closet_rect, border_radius=25)
-            inner_accessory_rect = accessory_closet_rect.inflate(-10, -10)
-            pygame.draw.rect(screen, CLOSET_PANEL_COLOR, inner_accessory_rect, border_radius=20)
+            inner_panel_rect = accessory_closet_rect.inflate(-10, -10)
+            pygame.draw.rect(screen, CLOSET_PANEL_COLOR, inner_panel_rect, border_radius=20)
 
             line_y = accessory_closet_rect.centery
             pygame.draw.line(
@@ -522,6 +636,22 @@ while running:
                 thumbnail_rect = thumbnail.get_rect(center=slot["rect"].center)
                 screen.blit(thumbnail, thumbnail_rect)
 
+        if equipped_accessory is not None:
+            mouse_pos = pygame.mouse.get_pos()
+
+            if final_done_button_rect.collidepoint(mouse_pos):
+                final_done_color = BUTTON_HOVER_COLOR
+            else:
+                final_done_color = BUTTON_COLOR
+
+            pygame.draw.rect(screen, final_done_color, final_done_button_rect, border_radius=25)
+
+            final_done_text = button_font.render("DONE", True, BUTTON_TEXT_COLOR)
+
+            final_done_text_rect = final_done_text.get_rect(center=final_done_button_rect.center)
+
+            screen.blit(final_done_text, final_done_text_rect)
+)
     #Intro Pop-Up
         if popup_stage in ("greeting", "hesitant"):
             pygame.draw.rect(screen, POPUP_BORDER_COLOR, popup_rect.inflate(10, 10), border_radius=25)
@@ -589,6 +719,54 @@ while running:
     if fade_alpha > 0:
         fade_surface.set_alpha(fade_alpha)
         screen.blit(fade_surface, (0, 0))
+
+    #Final Transition
+
+    if final_transitioning or final_transition_stage > 0:
+
+        if final_transition_stage == 0:
+            finale_fade_alpha += 5
+            if final_fade_alpha >= 255:
+                final_fade_alpha = 255
+                final_transition_stage = 1
+                final_stage_timer = 0
+
+                zoom_width = int(final_charcter_image.get_width() * FINAL_ZOOM_SCALE)
+                zoom_height = int(final_character_image.get_height() * FINAL_ZOOM_SCALE)
+                zoomed_full_surface = pygame.transform.smoothscale(final_character_image, (zoom_width, zoom_height))
+
+                shadow_width = int(final_character_shadow.get_width() * FINAL_ZOOM_SCALE)
+                shadow_height = int(final_character_shadow.get_height() * FINAL_ZOOM_SCALE)
+
+                zoomed_shadow_surface = pygame.transform.smoothscale(
+                    final_character_shadow, (shadow_width, shadow_height)
+                )
+
+            fade_surface.set_alpha(final_fade_alpha)
+            screen.blit(fade_surface, (0, 0))
+
+        elif final_transition_stage in (1, 2, 3):
+            screen.blit(title_background_image, (0, 0))
+
+            stage_index = final_transition_stage - 1
+            top_fraction, bottom_fraction, slide_from = PAN_STAGES[stage_index]
+
+            pan_progress = final_stage_timer / PAN_DURATION_FRAMES
+
+            if pan_progress > 1:
+                pan_progress = 1
+
+            target_y_in_image = int(zoomed_full_surface.get_height() * (top_fraction + bottom_fraction) /2)
+            zoomed_rect = zoomed_full_surface.get_rect()
+            zoomed_rect.top = HEIGHT // 2 - target_y_in_image
+
+            if slide_from == "left":
+                start_x = -zoomed_rect.width // 2
+            else:
+                start_x = WIDTH + zoomed_rect.width // 2
+            end_x = WIDTH //2
+            zoomed_rct.centerx = int(start_x + (end_x - start_x) * pan_progress)
+
 
     #Outfit Reveal
     if outfit_finalized and reveal_progress < 1:
