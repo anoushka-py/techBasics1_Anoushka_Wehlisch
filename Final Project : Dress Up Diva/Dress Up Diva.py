@@ -28,17 +28,27 @@ CLOSET_PANEL_COLOR = (255, 214, 224)
 CLOSET_PANEL_BORDER_COLOR = (232, 193, 140)
 CLOSET_SEPERATOR_COLOR = (255, 255, 255)
 CLOSET_ARROW_COLOR = (255, 160, 190)
+POPUP_BG_COLOR = (255, 255,255)
+POPUP_BORDER_COLOR = (255, 182, 193)
+POPUP_TEXT_COLOR = (90, 60, 90)
+POPUP_BUTTON_COLOR = (255, 214, 224)
+POPUP_BUTTON_HOVER_COLOR = (255, 160, 190)
+POPUP_BUTTON_TEXT_COLOR = (90, 60, 90)
 
-#Fonts
+#Fonts -----------------------------------------------------------------------------------
 
 title_font = pygame.font.SysFont("comicsansms", 80, bold=True)
 button_font = pygame.font.SysFont("comicsansms", 48, bold=True)
-
+popup_font = pygame.font.SysFont("comicsansms", 26, bold=True)
+accessory_popup_font = pygame.font.SysFont("comicsansms", 22, bold=True)
+popup_button_font = pygame.font.SysFont("comicsansms", 24, bold=True)
 #Title Text -----------------------------------------------------------------------------------------
+
 title_text = title_font.render("Dress Up Diva", True, TITLE_COLOR)
 title_rect = title_text.get_rect(center=(WIDTH // 2, 170))
 
 #Play Button ----------------------------------------------------------------------------------------
+
 button_width, button_height = 260, 90
 button_rect = pygame.Rect(0, 0, button_width, button_height)
 button_rect.center = (WIDTH // 2, 400)
@@ -47,6 +57,7 @@ button_text = button_font.render("PLAY", True, BUTTON_TEXT_COLOR)
 BUTTON_HOVER_SCALE = 1.15
 
 #Character Artwork ----------------------------------------------------------------------------------------
+
 character_image = pygame.image.load("assets/character_base.png")
 
 CHARACTER_HEIGHT = 750
@@ -59,6 +70,7 @@ character_rect.centerx = WIDTH // 4
 character_rect.bottom = HEIGHT - 10
 
 #Closet Layout ----------------------------------------------------------------------------------------
+
 closet_panel_rect = pygame.Rect(0, 0, 280, 680)
 closet_panel_rect.center = (WIDTH * 3 // 4, HEIGHT // 2)
 
@@ -87,8 +99,27 @@ for i, category in enumerate(closet_categories):
         "right_arrow_rect": right_arrow_rect,
         "selected_index": 0,
     })
+#Accessory Closet -----------------------------------------------------------------------------------
+
+accessory_closet_rect = closet_panel_rect.copy()
+accessory_section_height = accessory_closet_rect.height / 2
+
+accessory_slots = []
+for i in range(2):
+    accessory_slot_rect = pygame.Rect(
+        accessory_closet_rect.left,
+        accessory_closet_rect.top + i * accessory_section_height,
+        accessory_closet_rect.width,
+        accessory_section_height
+    )
+
+    accessory_slots.append({
+        "rect:": accessory_slot_rect,
+        "accessory_index": i,
+    })
 
 #Clothing Options ----------------------------------------------------------------------------------------
+
 hair_options = [
      {"name": "Black Long Hair", "image": "Assets/Hair/Hair 1.png"},
      {"name": "Blonde Half Up Half Down", "image": "Assets/Hair/Hair 2.png"},
@@ -121,6 +152,10 @@ shoe_options = [
     {"name": "Black Heels", "image": "Assets/Shoes/Shoes 5.png"},
 ]
 
+accessory_options = [
+    {"name": "Gold Jewelry", "image": "Assets/Accessories/Accessory 1.png"},
+    {"name": "Silver Jewelry", "image": "Assets/Accessories/Accessory 2.png"},
+]
 
  #Clothing Loading ----------------------------------------------------------------------------------------
 THUMBNAIL_MAX_SIZE = (150, 120)
@@ -148,8 +183,9 @@ load_clothing_images(hair_options)
 load_clothing_images(top_options)
 load_clothing_images(bottom_options)
 load_clothing_images(shoe_options)
+load_clothing_images(accessory_options)
 
- #Clothing Dictionaries
+#Clothing Dictionaries ----------------------------------------------------------------------------------------
 category_options = {
  "hair": hair_options,
  "top": top_options,
@@ -164,9 +200,65 @@ equipped_items = {
  "shoe": None,
 }
 
+equipped_accessory = None
+
 DRAW_ORDER = ["shoe", "bottom", "top", "hair"]
 
-#Screen Transition
+#Intro Pop Up ----------------------------------------------------------------------------------------
+
+popup_stage = None
+
+popup_rect = pygame.Rect(0, 0, 520, 320)
+popup_rect.center = (WIDTH // 2, HEIGHT // 2)
+
+POPUP_GREETING_LINES = [
+    "This diva is in dire need of",
+    "a make-over! Can you help her",
+    "choose an outfit?",
+]
+
+popup_button_width, popup_button_height = 200, 60
+
+well_duh_rect = pygame.Rect(0, 0, popup_button_width, popup_button_height)
+well_duh_rect.center = (popup_rect.centerx - 130, popup_rect.bottom - 70)
+
+uhm_rect = pygame.Rect(0, 0, popup_button_width, popup_button_height)
+uhm_rect.center = (popup_rect.centerx + 130, popup_rect.bottom - 70)
+
+alright_fine_rect = pygame.Rect(0, 0, popup_button_width + 40, popup_button_height)
+alright_fine_rect.center = (popup_rect.centerx, popup_rect.bottom - 70)
+
+#Outfit Finilization ----------------------------------------------------------------------------------------
+
+outfit_finalized = False
+reveal_progess = 0.0
+REVEAL_SPEED = 0.02
+
+GROW_SCALE = 1.15
+character_target_centerx = WIDTH // 2 - 10
+character_start_centerx = character_rect.centerx
+
+DOWNWARD_SHIFT = 80
+character_start_bottom = character_rect.bottom
+character_target_bottom = character_rect.bottom + DOWNWARD_SHIFT
+
+DONE_BUTTON_SIZE = (160, 70)
+done_button_rect = pygame.Rect(0, 0, DONE_BUTTON_SIZE[0], DONE_BUTTON_SIZE[1])
+done_button_rect.center = ((character_rect.right + closet_panel_rect.left) // 2, HEIGHT // 2)
+
+closet_fade_rect = closet_panel_rect.inflate(20, 20)
+closet_fade_surface = pygame.Surface(closet_fade_rect.size)
+closet_fade_surface.fill(GAME_BACKGROUND_COLOR)
+
+#Accessory Prompt ----------------------------------------------------------------------------------------
+
+accessory_prompt_stage = None
+accessory_popup_rect = pygame.Rect(0, 0, 350, 150)
+how_could_i_forget_rect = pygame.Rect(0, 0, 260, 60)
+
+accessory_closet_showing = False
+
+#Screen Transition ----------------------------------------------------------------------------------------
 game_state = "title"
 transitioning = False
 fade_alpha = 0
@@ -182,6 +274,13 @@ running = True
 
 while running:
 
+    outfit_complete = (
+            equipped_items["hair"] is not None
+            and equipped_items["top"] is not None
+            and equipped_items["bottom"] is not None
+            and equipped_items["shoe"] is not None
+    )
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -190,7 +289,44 @@ while running:
                 transitioning = True
                 fade_direction = 1
 
-            elif game_state == "game":
+
+            elif game_state == "game" and popup_stage == "greeting":
+                if well_duh_rect.collidepoint(event.pos):
+                    popup_stage = "closed"
+                elif uhm_rect.collidepoint(event.pos):
+                    popup_stage = "hesitant"
+
+
+            elif game_state == "game" and popup_stage == "hesitant":
+                if alright_fine_rect.collidepoint(event.pos):
+                    popup_stage = "closed"
+
+
+            elif game_state == "game" and accessory_prompt_stage == "showing":
+                if how_could_i_forget_rect.collidepoint(event.pos):
+                    accessory_prompt_stage = "closed"
+                    accessory_closet_showing = True
+
+
+            elif game_state == "game" and accessory_closet_showing:
+                for slot in accessory_slots:
+                    if slot["rect"].collidepoint(event.pos):
+                        current_accessory = accessory_options[slot["accessory_index"]]
+                        accessory = current_accessory["surface"]
+
+                        grown_width = int(accessory.get_width() * GROW_SCALE)
+
+                        grown_height = int(accessory.get_height() * GROW_SCALE)
+
+                        equipped_accessory = pygame.transform.smoothscale(
+
+                            accessory,
+                        (grown_width, grown_height)
+
+                        )
+
+
+            elif game_state == "game" and popup_stage == "closed" and not accessory_closet_showing:
                 for slot in closet_slots:
                     options_list = category_options[slot["category"]]
 
@@ -206,6 +342,35 @@ while running:
                     elif slot["rect"].collidepoint(event.pos):
                         current_item = options_list[slot["selected_index"]]
                         equipped_items[slot["category"]] = current_item["surface"]
+
+
+            if outfit_complete and not outfit_finalized and done_button_rect.collidepoint(event.pos):
+                outfit_finalized = True
+                reveal_progress = 0.0
+
+                new_width = int(character_image.get_width() * GROW_SCALE)
+                new_height = int(character_image.get_height() * GROW_SCALE)
+                character_image = pygame.transform.smoothscale(character_image, (new_width, new_height))
+                character_rect = character_image.get_rect(center=character_rect.center)
+
+                for category in equipped_items:
+                    equipped_surface = equipped_items[category]
+                    if equipped_surface is not None:
+                        grown_width = int(equipped_surface.get_width() * GROW_SCALE)
+                        grown_height = int(equipped_surface.get_height() * GROW_SCALE)
+                        equipped_items[category] = pygame.transform.smoothscale(
+                            equipped_surface, (grown_width, grown_height)
+                         )
+
+                        character_start_centerx = character_rect.centerx
+                        character_start_bottom = character_rect.bottom
+
+                        accessory_popup_rect.midright = (
+                            character_target_centerx - character_rect.width // 2 + 300,
+                            character_target_bottom - character_rect.height // 2 - 80
+                        )
+                        how_could_i_forget_rect.center = (accessory_popup_rect.centerx, accessory_pop_up_rect.bottom - 17)
+
 
     if game_state == "title":
 
@@ -255,14 +420,31 @@ while running:
             scaled_button_text_rect
         )
 
-
-
     elif game_state == "game":
 
         #Drawing the background
         screen.fill(GAME_BACKGROUND_COLOR)
 
-        #Drawing the character
+        if accessory_prompt_stage == "showing":
+            pygame.draw.rect(screen, POPUP_BORDER_COLOR, accessory_popup_rect.inflate(10, 10), border_radius=25)
+            pygame.draw.rect(screen, POPUP_BG_COLOR, accessory_popup_rect, border_radius=20)
+
+            accessory_line = accessory_popup_font.render("Wait, what about accessories?", True, POPUP_TEXT_COLOR)
+            accessory_line_rect = accessory_line.get_rect(
+                center=(accessory_popup_rect.centerx, accessory_popup_rect.top + 60))
+            screen.blit(accessory_line, accessory_line_rect)
+
+            mouse_pos = pygame.mouse.get_pos()
+            if how_could_i_forget_rect.collidepoint(mouse_pos):
+                forget_color = POPUP_BUTTON_HOVER_COLOR
+            else:
+                forget_color = POPUP_BUTTON_COLOR
+            pygame.draw.rect(screen, forget_color, how_could_i_forget_rect, border_radius=20)
+            forget_text = popup_button_font.render("How could I forget!", True, POPUP_BUTTON_TEXT_COLOR)
+            forget_text_rect = forget_text.get_rect(center=how_could_i_forget_rect.center)
+            screen.blit(forget_text, forget_text_rect)
+
+        #Draw character
         screen.blit(character_image, character_rect)
 
         for category in DRAW_ORDER:
@@ -273,9 +455,7 @@ while running:
                 screen.blit(equipped_surface, character_rect)
 
         pygame.draw.rect(screen, CLOSET_PANEL_BORDER_COLOR, closet_panel_rect, border_radius=25)
-
         inner_panel_rect = closet_panel_rect.inflate(-10, -10)
-
         pygame.draw.rect(screen, CLOSET_PANEL_COLOR, inner_panel_rect, border_radius=20)
 
         for i, slot in enumerate(closet_slots):
@@ -308,7 +488,40 @@ while running:
                 thumbnail = current_item["thumbnail"]
                 thumbnail_rect = thumbnail.get_rect(center=slot["rect"].center)
                 screen.blit(thumbnail, thumbnail_rect)
-    #Fade transitiom
+
+            if outfit_complete ans not outfit_finalized:
+                mouse_pos = pygame.mouse.get_pos()
+                if done_button_rect.collidepoint(mouse_pos):
+                    done_color= BUTTON_HOVER_COLOR
+                else:
+                    done_color = BUTTON_COLOR
+                pygame.draw.rect(screen, done_color, done_button_rect, border_radius=25)
+
+                done_text = button_font.render("DONE", True, BUTTON_TEXT_COLOR)
+                done_text_rect = done_text.get_rect(center=done_button_rect.center)
+                screen.blit(done_text, done_text_rect)
+
+    #Accessory Closet
+        if accessory_closet_showing:
+            pygame.draw.rect(screen, CLOSET_PANEL_COLOR, accessory_closet_rect, border_radius=25)
+            inner_accessory_rect = accessory_closet_rect.inflate(-10, -10)
+            pygame.draw.rect(screen, CLOSET_PANEL_COLOR, inner_accessory_rect, border_radius=20)
+
+            line_y = accessory_closet_rect.centery
+            pygame.draw.line(
+                screen, CLOSET_SEPERATOR_COLOR,
+                (accessory_closet_rect.left + 15, line_y),
+                (accessory_closet_rect.right - 15, line_y),
+                3
+            )
+
+            for slot in accessory_slots:
+                current_accessory = accessory_options[slot["accessory_index"]]
+                thumbnail = current_accessory["thumbnail"]
+                thumbnail_rect = thumbnail.get_rect(center=slot["rect"].center)
+
+
+    #Fade transition
     if transitioning:
         fade_alpha += FADE_SPEED * fade_direction
 
