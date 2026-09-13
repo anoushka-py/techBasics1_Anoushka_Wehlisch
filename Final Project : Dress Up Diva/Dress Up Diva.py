@@ -519,7 +519,55 @@ while running:
                 current_accessory = accessory_options[slot["accessory_index"]]
                 thumbnail = current_accessory["thumbnail"]
                 thumbnail_rect = thumbnail.get_rect(center=slot["rect"].center)
+                screen.blit(thumbnail, thumbnail_rect)
 
+    #Intro Pop-Up
+        if popup_stage in ("greeting", "hesitant"):
+            pygame.draw.rect(screen, POPUP_BORDER_COLOR, popup_rect.inflate(10, 10), border_radius=25)
+
+            if popup_stage == "greeting":
+                lines_to_show = POPUP_GREETING_LINES
+            else:
+                lines_to_show = ["..."]
+
+            line_y = popup_rect.top + 50
+            for line in lines_to_show:
+                line_surface = popup_font.render(line, True, POPUP_TEXT_COLOR)
+                line_rect = line_surface.get_rect(center=popup_rect.centerx, line_y))
+                screen.blit(line_surface, line_rect)
+                line_y += 40
+
+            mouse_pos = pygame.mouse.get_pos()
+
+            if popup_stage == "greeting":
+                if well_duh_rect.collidepoint(mouse_pos):
+                well_duh_color = POPUP_BUTTON_HOVER_COLOR
+
+                else:
+                well_duh_color = POPUP_BUTTON_COLOR
+            pygame.draw.rect)screen, well_duh_color, well_duh_rect, border_radius=20)
+                well_duh_text = popup_button_font.render("Well duh!", True, POPUP_BUTTON_TEXT_COLOR)
+                well_duh_text_rect = well_duh_text.get_rect(center=well_duh_rect.center)
+                screen.blit(well_duh_text, well_duh_text_rect)
+
+                if uhm_rect.collidepoint(mouse_pos):
+                    uhm_color = POPUP_BUTTON_HOVER_COLOR
+                else:
+                    uhm_color = POPUP_BUTTON_COLOR
+                pygame.draw.rect(screen, uhm_color, uhm_rect, border_radius=20)
+                uhm_text = popup_button_font.render("Uhm..", True, POPUP_BUTTON_TEXT_COLOR)
+                uhm_text_rect = uhm_text.get_rect(center=uhm_rect.center)
+                screen.blit(uhm_text, uhm_text_rect)
+
+            else:
+                if alright_fine_rect.collidepoint(mouse_pos):
+                    alright_fine_color = POPUP_BUTTON_HOVER_COLOR
+                else:
+                    alright_fine_color = POPUP_BUTTON_COLOR
+                    pygame.draw.rect(screen, alright_fine_color, alright_fine_rect, border_radius=20)
+                    alright_fine_text = popup_button_font.render("Alright fine", True, POPUP_BUTTON_TEXT_COLOR)
+                    alright_fine_text_rect = alright_fine_text.get_rect(center=alright_fine_rect.center)
+                    screen.blit(alright_fine_text, alright_fine_text_rect)
 
     #Fade transition
     if transitioning:
@@ -534,10 +582,34 @@ while running:
         elif fade_alpha <= 0 and fade_direction == -1:
             fade_alpha = 0
             transitioning = False
+            if popup_stage is None:
+                popup_stage = "greeting"
 
     if fade_alpha > 0:
         fade_surface.set_alpha(fade_alpha)
         screen.blit(fade_surface, (0, 0))
+
+    #Outfit Reveal
+    if outfit_finalized and reveal_progess < 1:
+        reveal_progress += REVEAL_SPEED
+        if reveal_progress > 1:
+            reveal_progress = 1
+
+        character_rect.centerx = int(
+            character_start_centerx + (character_target_centerx - character_start_centerx) * reveal_progess
+        )
+        character_rect.bottom = int(
+            character_start.bottom + (character_target_bottom - character_start_bottom) * reveal_progress
+        )
+
+        if reveal_progress >= 1 and accessory_prompt_stage is None:
+            accessory_prompt_stage = "showing"
+
+    if outfit_finalized and not accessory_closet_showing:
+        closet_fade_alpha = int(255 * reveal_progress)
+        if closet_fade_alpha > 0:
+            closet_fade_surface.set_alpha(closet_fade_alpha)
+            screen.blit(closet_fade_surface, closet_fade_rect.topleft)
 
 #Update the game --------------------------------------------------------------------------------------
 
