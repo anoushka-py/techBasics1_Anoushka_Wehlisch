@@ -448,11 +448,12 @@ while running:
         screen.blit(character_image, character_rect)
 
         for category in DRAW_ORDER:
-
             equipped_surface = equipped_items[category]
-
             if equipped_surface is not None:
                 screen.blit(equipped_surface, character_rect)
+
+        if equipped_accessory is not None:
+            screen.blit(equipped_accessory, character_rect)
 
         pygame.draw.rect(screen, CLOSET_PANEL_BORDER_COLOR, closet_panel_rect, border_radius=25)
         inner_panel_rect = closet_panel_rect.inflate(-10, -10)
@@ -564,10 +565,10 @@ while running:
                     alright_fine_color = POPUP_BUTTON_HOVER_COLOR
                 else:
                     alright_fine_color = POPUP_BUTTON_COLOR
-                    pygame.draw.rect(screen, alright_fine_color, alright_fine_rect, border_radius=20)
-                    alright_fine_text = popup_button_font.render("Alright fine", True, POPUP_BUTTON_TEXT_COLOR)
-                    alright_fine_text_rect = alright_fine_text.get_rect(center=alright_fine_rect.center)
-                    screen.blit(alright_fine_text, alright_fine_text_rect)
+                pygame.draw.rect(screen, alright_fine_color, alright_fine_rect, border_radius=20)
+                alright_fine_text = popup_button_font.render("Alright fine", True, POPUP_BUTTON_TEXT_COLOR)
+                alright_fine_text_rect = alright_fine_text.get_rect(center=alright_fine_rect.center)
+                screen.blit(alright_fine_text, alright_fine_text_rect)
 
     #Fade transition
     if transitioning:
