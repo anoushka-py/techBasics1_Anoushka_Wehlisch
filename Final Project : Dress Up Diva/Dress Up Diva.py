@@ -322,7 +322,7 @@ final_character_image = None
 zoomed_full_surface = None
 
 PAN_STAGES = [
-    (90.20, 0.22, "left"),
+    (0.20, 0.22, "left"),
     (0.35, 0.68, "right" ),
     (0.50, 1.00, "left"),
 ]
