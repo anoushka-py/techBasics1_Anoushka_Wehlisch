@@ -477,7 +477,7 @@ while running:
 
         # Drawing the title
         draw_text_with_shadow(
-            "DRESS UP DIBA",
+            "DRESS UP DIVA",
             title_font,
             TITLE_COLOR,
             title_rect.topleft
@@ -752,7 +752,6 @@ while running:
             top_fraction, bottom_fraction, slide_from = PAN_STAGES[stage_index]
 
             pan_progress = final_stage_timer / PAN_DURATION_FRAMES
-
             if pan_progress > 1:
                 pan_progress = 1
 
@@ -807,7 +806,7 @@ while running:
             reveal_surface = pygame.transform.smoothscale(final_character_image, (reveal_width, reveal_height))
             reveal_rect = reveal_surface.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 40))
 
-    #Final character shadow?
+        #Final character shadow
 
             reveal_shadow_width = int(final_character_shadow.get_width() * FINAL_REVEAL_SCALE)
             reveal_shadow_height = int(final_character_shadow.get_height() * FINAL_REVEAL_SCALE)
