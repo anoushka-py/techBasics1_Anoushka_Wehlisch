@@ -114,7 +114,7 @@ for i in range(2):
     )
 
     accessory_slots.append({
-        "rect:": accessory_slot_rect,
+        "rect": accessory_slot_rect,
         "accessory_index": i,
     })
 
@@ -231,7 +231,7 @@ alright_fine_rect.center = (popup_rect.centerx, popup_rect.bottom - 70)
 #Outfit Finilization ----------------------------------------------------------------------------------------
 
 outfit_finalized = False
-reveal_progess = 0.0
+reveal_progress = 0.0
 REVEAL_SPEED = 0.02
 
 GROW_SCALE = 1.15
@@ -344,32 +344,32 @@ while running:
                         equipped_items[slot["category"]] = current_item["surface"]
 
 
-            if outfit_complete and not outfit_finalized and done_button_rect.collidepoint(event.pos):
-                outfit_finalized = True
-                reveal_progress = 0.0
+                if outfit_complete and not outfit_finalized and done_button_rect.collidepoint(event.pos):
+                    outfit_finalized = True
+                    reveal_progress = 0.0
 
-                new_width = int(character_image.get_width() * GROW_SCALE)
-                new_height = int(character_image.get_height() * GROW_SCALE)
-                character_image = pygame.transform.smoothscale(character_image, (new_width, new_height))
-                character_rect = character_image.get_rect(center=character_rect.center)
+                    new_width = int(character_image.get_width() * GROW_SCALE)
+                    new_height = int(character_image.get_height() * GROW_SCALE)
+                    character_image = pygame.transform.smoothscale(character_image, (new_width, new_height))
+                    character_rect = character_image.get_rect(center=character_rect.center)
 
-                for category in equipped_items:
-                    equipped_surface = equipped_items[category]
-                    if equipped_surface is not None:
-                        grown_width = int(equipped_surface.get_width() * GROW_SCALE)
-                        grown_height = int(equipped_surface.get_height() * GROW_SCALE)
-                        equipped_items[category] = pygame.transform.smoothscale(
-                            equipped_surface, (grown_width, grown_height)
-                         )
+                    for category in equipped_items:
+                        equipped_surface = equipped_items[category]
+                        if equipped_surface is not None:
+                            grown_width = int(equipped_surface.get_width() * GROW_SCALE)
+                            grown_height = int(equipped_surface.get_height() * GROW_SCALE)
+                            equipped_items[category] = pygame.transform.smoothscale(
+                                equipped_surface, (grown_width, grown_height)
+                             )
 
-                        character_start_centerx = character_rect.centerx
-                        character_start_bottom = character_rect.bottom
+                    character_start_centerx = character_rect.centerx
+                    character_start_bottom = character_rect.bottom
 
-                        accessory_popup_rect.midright = (
-                            character_target_centerx - character_rect.width // 2 + 300,
-                            character_target_bottom - character_rect.height // 2 - 80
-                        )
-                        how_could_i_forget_rect.center = (accessory_popup_rect.centerx, accessory_pop_up_rect.bottom - 17)
+                    accessory_popup_rect.midright = (
+                        character_target_centerx - character_rect.width // 2 + 300,
+                        character_target_bottom - character_rect.height // 2 - 80
+                    )
+                    how_could_i_forget_rect.center = (accessory_popup_rect.centerx, accessory_popup_rect.bottom - 17)
 
 
     if game_state == "title":
@@ -489,7 +489,7 @@ while running:
                 thumbnail_rect = thumbnail.get_rect(center=slot["rect"].center)
                 screen.blit(thumbnail, thumbnail_rect)
 
-            if outfit_complete ans not outfit_finalized:
+            if outfit_complete and not outfit_finalized:
                 mouse_pos = pygame.mouse.get_pos()
                 if done_button_rect.collidepoint(mouse_pos):
                     done_color= BUTTON_HOVER_COLOR
@@ -533,7 +533,7 @@ while running:
             line_y = popup_rect.top + 50
             for line in lines_to_show:
                 line_surface = popup_font.render(line, True, POPUP_TEXT_COLOR)
-                line_rect = line_surface.get_rect(center=popup_rect.centerx, line_y))
+                line_rect = line_surface.get_rect(center=(popup_rect.centerx, line_y))
                 screen.blit(line_surface, line_rect)
                 line_y += 40
 
@@ -541,11 +541,11 @@ while running:
 
             if popup_stage == "greeting":
                 if well_duh_rect.collidepoint(mouse_pos):
-                well_duh_color = POPUP_BUTTON_HOVER_COLOR
+                    well_duh_color = POPUP_BUTTON_HOVER_COLOR
 
                 else:
-                well_duh_color = POPUP_BUTTON_COLOR
-            pygame.draw.rect)screen, well_duh_color, well_duh_rect, border_radius=20)
+                    well_duh_color = POPUP_BUTTON_COLOR
+                pygame.draw.rect(screen, well_duh_color, well_duh_rect, border_radius=20)
                 well_duh_text = popup_button_font.render("Well duh!", True, POPUP_BUTTON_TEXT_COLOR)
                 well_duh_text_rect = well_duh_text.get_rect(center=well_duh_rect.center)
                 screen.blit(well_duh_text, well_duh_text_rect)
@@ -590,16 +590,16 @@ while running:
         screen.blit(fade_surface, (0, 0))
 
     #Outfit Reveal
-    if outfit_finalized and reveal_progess < 1:
+    if outfit_finalized and reveal_progress < 1:
         reveal_progress += REVEAL_SPEED
         if reveal_progress > 1:
             reveal_progress = 1
 
         character_rect.centerx = int(
-            character_start_centerx + (character_target_centerx - character_start_centerx) * reveal_progess
+            character_start_centerx + (character_target_centerx - character_start_centerx) * reveal_progress
         )
         character_rect.bottom = int(
-            character_start.bottom + (character_target_bottom - character_start_bottom) * reveal_progress
+            character_start_bottom + (character_target_bottom - character_start_bottom) * reveal_progress
         )
 
         if reveal_progress >= 1 and accessory_prompt_stage is None:
