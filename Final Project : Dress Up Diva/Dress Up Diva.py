@@ -6,6 +6,8 @@
 
 import pygame
 import sys
+import random
+import math
 
 
 #Set Up --------------------------------------------------------------------------------------------
@@ -276,7 +278,7 @@ done_button_rect.center = ((character_rect.right + closet_panel_rect.left) // 2,
 
 closet_fade_rect = closet_panel_rect.inflate(20, 20)
 closet_fade_surface = pygame.Surface(closet_fade_rect.size)
-ccloset_fade_rect = closet_panel_rect.inflate(20, 20)
+closet_fade_rect = closet_panel_rect.inflate(20, 20)
 closet_fade_surface = game_background_image.subsurface(closet_fade_rect).copy()
 
 #Accessory Prompt ----------------------------------------------------------------------------------------
@@ -310,7 +312,7 @@ final_transition_stage = 0
 final_stage_timer = 0
 
 PAN_DURATION_FRAMES = 150
-PAN_DURATION_FRAMES = 150
+PAN_DURATION_FRAMES = 90
 
 PAN_HOLD_FRAMES = 45
 FINAL_ZOOM_SCALE = 2.5
@@ -329,6 +331,15 @@ PAN_STAGES = [
 
 pan_surface = None
 pan_rect = None
+
+#Sparkles! :) ------------------------------------------------------------------------------------------
+
+SPARKLE_COLOR = (255, 255, 255)
+SPARKLE_COUNT = 40
+SPARKLE_MAX_SIZE = 60
+SPARKLE_LIFESPAN = 60
+
+sparkles = []
 
 #Main Loop ------------------------------------------------------------------------------------------
 
@@ -472,10 +483,10 @@ while running:
 
     if game_state == "title":
 
-        # Drawing the background
+    # Drawing the background
         screen.blit(title_background_image, (0, 0))
 
-        # Drawing the title
+    # Drawing the title
         draw_text_with_shadow(
             "DRESS UP DIVA",
             title_font,
@@ -483,7 +494,7 @@ while running:
             title_rect.topleft
         )
 
-        # Drawing the button
+    # Drawing the button
         mouse_pos = pygame.mouse.get_pos()
         is_hovering = button_rect.collidepoint(mouse_pos)
         is_pressed = is_hovering and pygame.mouse.get_pressed()[0]
@@ -525,7 +536,7 @@ while running:
 
     elif game_state == "game":
 
-        #Drawing the background
+    #Drawing the background
         screen.blit(game_background_image, (0, 0))
 
         if accessory_prompt_stage == "showing":
@@ -547,7 +558,7 @@ while running:
             forget_text_rect = forget_text.get_rect(center=how_could_i_forget_rect.center)
             screen.blit(forget_text, forget_text_rect)
 
-        #Draw character shadow
+    #Draw character shadow
 
         character_shadow = character_image.copy()
         character_shadow.fill((0, 0, 0, 100), special_flags=pygame.BLEND_RGBA_MULT)
@@ -557,7 +568,7 @@ while running:
             (character_rect.x + 6, character_rect.y + 6)
         )
 
-        #Draw character
+    #Draw character
         screen.blit(character_image, character_rect)
 
         for category in DRAW_ORDER:
@@ -798,6 +809,23 @@ while running:
                     final_transition_stage = 4
                     final_transition = False
 
+                sparkles = []
+                for i in range(SPARKLE_COUNT):
+                    angle = random.uniform(0, 360)
+                    speed = random.randint(5, 16)
+                    angle_radians = math.radians(angle)
+
+                    sparkle = {
+                        "x": WIDTH // 2 + random.randint(-80, 80),
+                        "y": HEIGHT // 2 - 100 + random.randint(-80, 80),
+                        "vx": math.cos(angle_radians) * speed,
+                        "vy": math.sin(angle_radians) * speed,
+                        "max_size": random.randint(20, SPARKLE_MAX_SIZE),
+                        "life": 0,
+                        "lifespan": SPARKLE_LIFESPAN + random.randint(-10, 20),
+                    }
+                    sparkles.append(sparkle)
+
         elif final_transition_stage == 4:
             screen.blit(title_background_image, (0, 0))
 
@@ -806,7 +834,7 @@ while running:
             reveal_surface = pygame.transform.smoothscale(final_character_image, (reveal_width, reveal_height))
             reveal_rect = reveal_surface.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 40))
 
-        #Final character shadow
+    #Final character shadow
 
             reveal_shadow_width = int(final_character_shadow.get_width() * FINAL_REVEAL_SCALE)
             reveal_shadow_height = int(final_character_shadow.get_height() * FINAL_REVEAL_SCALE)
@@ -822,8 +850,38 @@ while running:
 
             screen.blit(reveal_shadow_surface, reveal_shadow_rect)
 
-            # ---- draw final character ----
             screen.blit(reveal_surface, reveal_rect)
+
+    #Draw Sparkles
+
+            for sparkle in sparkles:
+                sparkle["life"] += 1
+                sparkle["x"] += sparkle["vx"]
+                sparkle["y"] += sparkle["vy"]
+                sparkle["vx"] *= 0.94
+                sparkle["vy"] *= 0.94
+
+                progress = sparkle["life"] / sparkle["lifespan"]
+                if progress > 1:
+                    progress = 1
+
+                if progress < 0.3:
+                    size_factor = progress / 0.3
+                else:
+                    size_factor = 1 - ((progress - 0.3) / 0.7)
+
+                current_size = max(2, int(sparkle["max_size"] * size_factor))
+                alpha = int(255 * (1 - progress))
+
+                sparkle_surface = pygame.Surface((current_size, current_size), pygame.SRCALPHA)
+                center = current_size // 2
+                thickness = max(2, current_size // 8)
+
+                pygame.draw.line(sparkle_surface, SPARKLE_COLOR, (center, 0), (center, current_size), thickness)
+                pygame.draw.line(sparkle_surface, SPARKLE_COLOR, (0, center), (current_size, center), thickness)
+
+                sparkle_surface.set_alpha(alpha)
+                screen.blit(sparkle_surface, (int(sparkle["x"] - center), int(sparkle["y"] - center)))
 
     #Outfit Reveal
     if outfit_finalized and reveal_progress < 1:
