@@ -1,5 +1,11 @@
 # Dress Up Diva
 
+<p><img width="350" height="270" alt="image" src="https://github.com/user-attachments/assets/8938424c-2e0a-4ba6-9918-b0a860721a65" /> <img width="360" height="270" alt="image" src="https://github.com/user-attachments/assets/6c3f21f3-b474-438b-9f52-d3e745eec834" />
+</p>
+
+
+
+
 Dress Up Diva is a dress up game built in Python with Pygame. The player dresses a custom-drawn character through an interactive closet, then watches a final "runway" reveal of the outfit they created.
 
 ## How to Run the Game
@@ -120,41 +126,41 @@ the screen's center.
 
 ## File Structure 
 
-Header comment (1-5)
-Imports (7-10)
-Setup (lines 13-18)
-Design Settings (20-38
-Fonts (lines 40-53)
-Text Shadow (55-63)
-Title Text (65-68)
-Play Button (70-77)
-Character Artwork (79-90)
-Background Images (92-99)
-Closet Layout (101-130)
-Accessory Closet (131-148)
-Clothing Options (l150-187)
-Clothing Loading (189-215)
-Clothing Dictionaries (217-235)
-Intro Pop Up (237-269)
-Outfit Finalization (271-292)
-Accessory Prompt (294-300)
-Done Button 2 (302-305)
-Screen Transition (308-315)
-Final Transition (317-353)
-Main Loop (355-945) 
+Header comment (1-5)<br>
+Imports (7-10)<br>
+Setup (lines 13-18)<br>
+Design Settings (20-38<br>
+Fonts (lines 40-53)<br>
+Text Shadow (55-63)<br>
+Title Text (65-68)<br>
+Play Button (70-77)<br>
+Character Artwork (79-90)<br>
+Background Images (92-99)<br>
+Closet Layout (101-130)<br>
+Accessory Closet (131-148)<br>
+Clothing Options (l150-187)<br>
+Clothing Loading (189-215)<br>
+Clothing Dictionaries (217-235)<br>
+Intro Pop Up (237-269)<br>
+Outfit Finalization (271-292)<br>
+Accessory Prompt (294-300)<br>
+Done Button 2 (302-305)<br>
+Screen Transition (308-315)<br>
+Final Transition (317-353)<br>
+Main Loop (355-945) <br>
 Shutdown (944-945)
 
 ## Assets 
 
-Assets/
-├── character_base.png
-├── backgrounds/
-│ ├── title_background.jpeg
-│ └── game_background.jpeg
-├── Hair/
-├── Tops/
-├── Bottoms/
-├── Shoes/
+Assets/<br>
+├── character_base.png<br>
+├── backgrounds/<br>
+│ ├── title_background.jpeg<br>
+│ └── game_background.jpeg<br>
+├── Hair/<br>
+├── Tops/<br>
+├── Bottoms/<br>
+├── Shoes/<br>
 └── Accessories/
 
 ## Use of AI
